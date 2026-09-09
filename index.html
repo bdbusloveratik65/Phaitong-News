@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="bn" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ফাইতং নিউজ</title>
+
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { primary: '#1d4ed8', secondary: '#b91c1c' } } }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google AdSense Global Client Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body { font-family: 'Hind Siliguri', sans-serif; }
+        
+        /* Breaking News Ticker Animation */
+        .ticker-wrap { overflow: hidden; white-space: nowrap; }
+        .ticker { display: inline-block; animation: ticker 10s linear infinite; }
+        .ticker:hover { animation-play-state: paused; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
+
+        /* Flexible Photo Container & Hover Animations */
+        .img-container {
+            width: 100%;
+            background-color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .img-responsive {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease;
+        }
+        .group:hover .img-responsive {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+
+        .btn-animate {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-animate:active { transform: scale(0.95); }
+
+        .breaking-badge {
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.7);
+            animation: pulse-glow 1.8s infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); }
+            50% { shadow: 0 0 16px rgba(239, 68, 68, 1); }
+        }
+
+        .featured-slide { transition: opacity 0.6s ease-in-out; }
+    </style>
+
+    <!-- Firebase SDK (v10 Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBXhZV7m2szWW_ay83lArBFg9PzIiSBce0",
+            authDomain: "tali-khata-e4320.firebaseapp.com",
+            databaseURL: "https://tali-khata-e4320-default-rtdb.firebaseio.com",
+            projectId: "tali-khata-e4320",
+            storageBucket: "tali-khata-e4320.firebasestorage.app",
+            messagingSenderId: "665836198127",
+            appId: "1:665836198127:web:d47e0871431ac6d267e31a",
+            measurementId: "G-WL65RK9H1R"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.db = db;
+        window.doc = doc;
+        window.onSnapshot = onSnapshot;
+        window.setDoc = setDoc;
+        window.auth = auth;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.sendPasswordResetEmail = sendPasswordResetEmail;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.updateProfile = updateProfile;
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col">
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => console.log('Service Worker Registered Successfully:', reg.scope))
+            .catch((err) => console.log('Service Worker Registration Failed:', err));
+        });
+      }
+    </script>
+
+    <!-- TOP HEADER BAR -->
+    <div class="bg-gray-900 text-white text-xs px-4 py-2 flex justify-between items-center border-b border-gray-800">
+        <span class="font-mono text-[11px]" id="live-date">সেপ্টেম্বর ২০২৬</span>
+        <div class="flex items-center gap-3">
+            <div id="user-auth-area">
+                <button onclick="toggleAuthModal(true)" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] px-2.5 py-1 rounded font-bold flex items-center gap-1 transition">
+                    <i class="fas fa-user"></i> লগইন / অ্যাকাউন্ট
+                </button>
+            </div>
+            <span class="text-[10px] bg-red-600 px-2 py-0.5 rounded font-bold uppercase tracking-wider animate-pulse">Live News</span>
+        </div>
+    </div>
+
+    <!-- HEADER SECTION -->
+    <header class="sticky top-0 z-40 bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+        <div class="px-4 py-3 flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <div onclick="showHome()" class="flex items-center gap-2 cursor-pointer group">
+                    <span id="site-logo-badge" class="bg-red-600 text-white font-black text-xl px-2 py-0.5 rounded transition-transform group-hover:scale-105">NEWS</span>
+                    <div>
+                        <h1 id="site-name" class="text-xl font-bold tracking-tight"></h1>
+                        <p id="site-tagline" class="text-[10px] text-gray-500 dark:text-gray-400">সত্যের সাথে সর্বদা</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button id="btn-create-post" onclick="toggleCreatePostModal(true)" class="hidden btn-animate px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-md flex items-center gap-1 shadow">
+                        <i class="fas fa-pen"></i> পোস্ট করুন
+                    </button>
+                    <button onclick="toggleSearchModal()" class="btn-animate p-2.5 bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-600 hover:text-white transition">
+                        <i class="fas fa-search text-base"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Header Ad Banner Space -->
+            <div id="ad-header-container" class="w-full min-h-[50px] bg-gray-50 dark:bg-gray-800 rounded flex items-center justify-center text-xs text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 overflow-hidden">
+                📢 Header Banner Ad Space
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="bg-blue-800 text-white overflow-x-auto whitespace-nowrap scrollbar-none">
+            <div class="flex text-xs font-medium px-2 py-1.5 gap-1.5" id="nav-categories"></div>
+        </nav>
+    </header>
+
+    <!-- BREAKING NEWS TICKER -->
+    <div class="bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-white flex items-center text-xs shadow-inner">
+        <span class="breaking-badge bg-black text-yellow-400 font-bold px-3.5 py-1.5 uppercase flex items-center shrink-0 border-r border-red-500 z-10">
+            <i class="fas fa-bolt me-1.5 animate-bounce text-yellow-400"></i> ব্রেকিং:
+        </span>
+        <div class="ticker-wrap w-full py-1.5">
+            <div class="ticker text-white font-medium tracking-wide" id="breaking-ticker-text">লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="px-3 py-4 flex-grow max-w-5xl mx-auto w-full">
+        <!-- Home View -->
+        <section id="view-home" class="space-y-6">
+            <div id="featured-post-box"></div>
+
+            <div id="ad-feed-container" class="w-full min-h-[60px] bg-gray-50 dark:bg-gray-800 rounded flex items-center justify-center text-xs text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 overflow-hidden">
+                📢 In-Feed Banner Ad Space
+            </div>
+
+            <div>
+                <h3 class="text-base font-bold border-b-2 border-blue-600 pb-1 mb-4 flex justify-between items-center" id="grid-title">সকল সংবাদ</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="posts-grid"></div>
+            </div>
+        </section>
+
+        <!-- Details View -->
+        <section id="view-detail" class="hidden space-y-4">
+            <button onclick="showHome()" class="btn-animate text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1.5 bg-blue-50 dark:bg-gray-800 px-3 py-1.5 rounded-md hover:bg-blue-600 hover:text-white transition">
+                <i class="fas fa-arrow-left"></i> হোমপেজে ফিরুন
+            </button>
+            <div id="detail-content" class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700"></div>
+        </section>
+    </main>
+
+    <!-- 👤 USER PROFILE & DASHBOARD MODAL -->
+    <div id="profile-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden p-4 flex items-center justify-center transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-lg shadow-2xl p-5 border border-gray-200 dark:border-gray-700 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleProfileModal(false)" class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-lg font-bold px-2">&times;</button>
+            
+            <h3 class="text-base font-bold text-blue-600 dark:text-blue-400 mb-4 flex items-center gap-2">
+                <i class="fas fa-id-card"></i> ইউজার প্রোফাইল ড্যাশবোর্ড
+            </h3>
+
+            <!-- Profile Info & Edit Form -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col items-center justify-center text-center">
+                    <div class="relative w-20 h-20 mb-2">
+                        <img id="user-avatar-img" src="https://via.placeholder.com/150" class="w-20 h-20 rounded-full object-cover border-2 border-blue-500 shadow">
+                    </div>
+                    <label class="text-[10px] bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 text-gray-700 dark:text-gray-200 px-2 py-1 rounded cursor-pointer font-bold transition">
+                        📸 ছবি পরিবর্তন
+                        <input type="file" id="profile-photo-input" accept="image/*" class="hidden" onchange="uploadProfilePhoto(event)">
+                    </label>
+                    <span id="profile-upload-status" class="text-[10px] font-bold mt-1"></span>
+                </div>
+
+                <div class="md:col-span-2 space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">আপনার নাম</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="profile-display-name" class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none">
+                            <button onclick="updateProfileName()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded font-bold shrink-0 shadow">সেভ</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ইমেইল ঠিকানা</label>
+                        <input type="text" id="profile-email-readonly" readonly class="w-full p-2 text-xs border rounded bg-gray-100 dark:bg-gray-600 text-gray-500 cursor-not-allowed">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-3 gap-2 my-4 text-center">
+                <div class="bg-blue-50 dark:bg-gray-700 p-2.5 rounded border border-blue-100 dark:border-gray-600">
+                    <p class="text-[10px] font-bold text-gray-500 dark:text-gray-300">মোট পোস্ট</p>
+                    <h4 id="user-stat-total" class="text-base font-black text-blue-600 dark:text-blue-400">0</h4>
+                </div>
+                <div class="bg-emerald-50 dark:bg-gray-700 p-2.5 rounded border border-emerald-100 dark:border-gray-600">
+                    <p class="text-[10px] font-bold text-gray-500 dark:text-gray-300">এপ্রুভড</p>
+                    <h4 id="user-stat-approved" class="text-base font-black text-emerald-600 dark:text-emerald-400">0</h4>
+                </div>
+                <div class="bg-amber-50 dark:bg-gray-700 p-2.5 rounded border border-amber-100 dark:border-gray-600">
+                    <p class="text-[10px] font-bold text-gray-500 dark:text-gray-300">পেন্ডিং</p>
+                    <h4 id="user-stat-pending" class="text-base font-black text-amber-600 dark:text-amber-400">0</h4>
+                </div>
+            </div>
+
+            <!-- Manage User's Posts -->
+            <div>
+                <h4 class="font-bold text-xs mb-2 flex items-center justify-between">
+                    <span>📋 আমার পোস্টসমূহ</span>
+                    <button onclick="toggleCreatePostModal(true); toggleProfileModal(false);" class="text-green-600 dark:text-green-400 text-[11px] font-bold hover:underline">+ নতুন পোস্ট</button>
+                </h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 dark:bg-gray-700 border-b dark:border-gray-600">
+                                <th class="p-2">ছবি</th>
+                                <th class="p-2">টাইটেল</th>
+                                <th class="p-2">স্ট্যাটাস</th>
+                                <th class="p-2 text-right">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-posts-table-body">
+                            <!-- User posts dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION MODAL -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden p-4 flex items-center justify-center transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-lg shadow-2xl p-5 border border-gray-200 dark:border-gray-700 relative">
+            <button onclick="toggleAuthModal(false)" class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-lg font-bold px-2">&times;</button>
+            
+            <!-- LOGIN FORM -->
+            <div id="auth-login-box">
+                <h3 class="text-base font-bold text-blue-600 dark:text-blue-400 mb-4 flex items-center gap-2"><i class="fas fa-sign-in-alt"></i> একাউন্ট লগইন</h3>
+                <form onsubmit="handleLogin(event)" class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ইমেইল ঠিকানা</label>
+                        <input type="email" id="login-email" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500" placeholder="yourname@gmail.com">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">পাসওয়ার্ড</label>
+                        <input type="password" id="login-password" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500" placeholder="******">
+                    </div>
+                    <div class="flex justify-between items-center text-[11px]">
+                        <button type="button" onclick="switchAuthTab('forgot')" class="text-blue-600 hover:underline">পাসওয়ার্ড ভুলে গেছেন?</button>
+                        <button type="button" onclick="switchAuthTab('register')" class="text-green-600 font-bold hover:underline">নতুন একাউন্ট খুলুন</button>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded shadow transition">লগইন করুন</button>
+                </form>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="auth-register-box" class="hidden">
+                <h3 class="text-base font-bold text-green-600 dark:text-green-400 mb-4 flex items-center gap-2"><i class="fas fa-user-plus"></i> একাউন্ট রেজিস্ট্রেশন</h3>
+                <form onsubmit="handleRegister(event)" class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">আপনার পূর্ণ নাম</label>
+                        <input type="text" id="reg-name" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-green-500" placeholder="আব্দুর রহমান">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ইমেইল ঠিকানা</label>
+                        <input type="email" id="reg-email" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-green-500" placeholder="yourname@gmail.com">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">পাসওয়ার্ড (নূন্যতম ৬ অক্ষর)</label>
+                        <input type="password" id="reg-password" minlength="6" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-green-500" placeholder="******">
+                    </div>
+                    <div class="text-right text-[11px]">
+                        <button type="button" onclick="switchAuthTab('login')" class="text-blue-600 hover:underline">আগে থেকেই একাউন্ট আছে? লগইন করুন</button>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2 rounded shadow transition">একাউন্ট তৈরি করুন</button>
+                </form>
+            </div>
+
+            <!-- FORGOT PASSWORD FORM -->
+            <div id="auth-forgot-box" class="hidden">
+                <h3 class="text-base font-bold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2"><i class="fas fa-key"></i> পাসওয়ার্ড রিসেট</h3>
+                <p class="text-[11px] text-gray-500 mb-3">আপনার একাউন্টের ইমেইল লিখুন, পাসওয়ার্ড রিসেট লিংক পাঠানো হবে।</p>
+                <form onsubmit="handleForgotPassword(event)" class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ইমেইল ঠিকানা</label>
+                        <input type="email" id="forgot-email" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-red-500" placeholder="yourname@gmail.com">
+                    </div>
+                    <div class="text-right text-[11px]">
+                        <button type="button" onclick="switchAuthTab('login')" class="text-blue-600 hover:underline">লগইনে ফিরে যান</button>
+                    </div>
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2 rounded shadow transition">রিসেট লিংক পাঠান</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📝 ADVANCED CREATE & EDIT POST MODAL -->
+    <div id="create-post-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden p-4 flex items-center justify-center transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-xl rounded-lg shadow-2xl p-5 border border-gray-200 dark:border-gray-700 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleCreatePostModal(false)" class="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-lg font-bold px-2">&times;</button>
+            
+            <h3 id="user-post-modal-title" class="text-base font-bold text-green-600 dark:text-green-400 mb-1 flex items-center gap-2">
+                <i class="fas fa-pen-nib"></i> নতুন পোস্ট সাবমিট করুন
+            </h3>
+            <p class="text-[11px] text-gray-500 mb-4">পোস্টটি প্রকাশের জন্য এডমিন এপ্রুভালের প্রয়োজন হবে।</p>
+
+            <form onsubmit="handleUserPostSubmit(event)" class="space-y-3">
+                <input type="hidden" id="user-edit-post-id" value="">
+
+                <div>
+                    <label class="text-xs font-semibold block mb-1">পোস্ট শিরোনাম / টাইটেল *</label>
+                    <input type="text" id="post-title" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ক্যাটাগরি *</label>
+                        <select id="post-category" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500">
+                            <!-- Dynamically Loaded -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">ট্যাগ (কমা দিয়ে লিখুন)</label>
+                        <input type="text" id="post-tags" placeholder="গেমিং, Update, News" class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- 📤 ImgBB MULTI PHOTO UPLOAD BOX -->
+                <div class="p-3 bg-blue-50 dark:bg-gray-700/50 rounded border border-blue-200 dark:border-gray-600">
+                    <label class="block text-xs font-bold mb-1 text-blue-800 dark:text-blue-300">
+                        <i class="fas fa-images me-1"></i> ফটো আপলোড করুন ( ৪/৫ টা ফটো আপলোড করতে চাইলে একটি একটি করে আপলোড করুন ) *
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="user-post-file-input" accept="image/*" class="text-xs w-full bg-white dark:bg-gray-800 p-1 rounded border">
+                        <button type="button" onclick="uploadUserPostImage()" id="btn-upload-user-img" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-bold shrink-0">
+                            📤 আপলোড
+                        </button>
+                    </div>
+                    <div id="user-upload-status" class="text-[11px] mt-1 font-bold"></div>
+                    <div id="user-image-preview-box" class="mt-3 flex flex-wrap gap-2"></div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold block mb-1">সংক্ষিপ্ত বিবরণ *</label>
+                    <textarea id="post-short-desc" rows="2" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500" placeholder="সংক্ষেপে ১-২ লাইনে লিখুন..."></textarea>
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold block mb-1">সম্পূর্ণ বিবরণ *</label>
+                    <textarea id="post-full-details" rows="4" required class="w-full p-2 text-xs border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-1 focus:ring-blue-500" placeholder="বিস্তারিত বর্ণনা করুন..."></textarea>
+                </div>
+
+                <!-- Dynamic Links Section -->
+                <div>
+                    <label class="text-xs font-semibold block mb-1">গুরুত্বপূর্ণ লিংকসমূহ (যদি থাকে)</label>
+                    <div id="user-links-wrapper" class="space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="লিংকের নাম" class="user-link-title w-1/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+                            <input type="url" placeholder="URL (https://...)" class="user-link-url w-2/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+                        </div>
+                    </div>
+                    <button type="button" onclick="addUserLinkInput()" class="mt-2 text-[11px] bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 px-2.5 py-1 rounded font-bold">+ আরও লিংক যোগ করুন</button>
+                </div>
+
+                <button type="submit" id="btn-submit-user-post" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2.5 rounded shadow transition">
+                    🚀 পোস্ট সাবমিট করুন (Pending)
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SEARCH MODAL -->
+    <div id="search-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden p-4 flex items-start justify-center pt-12 transition-opacity">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-lg shadow-2xl p-4 border border-gray-200 dark:border-gray-700 transform transition-all">
+            <div class="flex justify-between items-center pb-2 border-b">
+                <h3 class="text-sm font-bold"><i class="fas fa-search me-1 text-blue-600"></i>স্মার্ট নিউজ সার্চ</h3>
+                <button onclick="toggleSearchModal(false)" class="btn-animate text-gray-500 font-bold text-lg hover:text-red-500 px-2">&times;</button>
+            </div>
+            <div class="mt-3">
+                <input type="text" id="search-input" onkeyup="smartSearch()" placeholder="কীওয়ার্ড বা নিউজ টাইটেল লিখুন..." class="w-full p-2.5 text-sm border rounded dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div id="search-results" class="mt-3 max-h-72 overflow-y-auto space-y-2"></div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-8 py-6 px-4 text-center">
+        <p>&copy; ২০২৬ Professional News Platform. All Rights Reserved.</p>
+    </footer>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        const IMGBB_API_KEY = "ea8284407f0689742946d416020168f6";
+        let globalPosts = [];
+        let approvedPosts = [];
+        let globalSettings = {};
+        let featuredPostsList = [];
+        let currentFeaturedIndex = 0;
+        let featuredSliderInterval = null;
+        let currentUser = null;
+        let userUploadedImages = [];
+
+        // FIREBASE INITIALIZATION
+        window.addEventListener('load', () => {
+            const checkFirebase = setInterval(() => {
+                if (window.db && window.auth) {
+                    clearInterval(checkFirebase);
+                    initAuthObserver();
+                    startFirebaseRealtimeSync();
+                }
+            }, 200);
+        });
+
+        // AUTH OBSERVER
+        function initAuthObserver() {
+            window.onAuthStateChanged(window.auth, (user) => {
+                currentUser = user;
+                const authArea = document.getElementById('user-auth-area');
+                const btnCreatePost = document.getElementById('btn-create-post');
+
+                if (user) {
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    const photoURL = user.photoURL || 'https://via.placeholder.com/150';
+                    authArea.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <div onclick="toggleProfileModal(true)" class="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition bg-gray-800 px-2 py-0.5 rounded-full border border-gray-700">
+                                <img src="${photoURL}" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-[11px] font-bold text-blue-400">${displayName}</span>
+                            </div>
+                            <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-700 text-white text-[10px] px-2 py-0.5 rounded font-bold transition">লগআউট</button>
+                        </div>
+                    `;
+                    btnCreatePost.classList.remove('hidden');
+                } else {
+                    authArea.innerHTML = `
+                        <button onclick="toggleAuthModal(true)" class="bg-blue-600 hover:bg-blue-700 text-white text-[11px] px-2.5 py-1 rounded font-bold flex items-center gap-1 transition">
+                            <i class="fas fa-user"></i> লগইন / অ্যাকাউন্ট
+                        </button>
+                    `;
+                    btnCreatePost.classList.add('hidden');
+                }
+            });
+        }
+
+        // REALTIME SYNC
+        function startFirebaseRealtimeSync() {
+            window.onSnapshot(window.doc(window.db, "news_portal", "data"), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    globalPosts = data.posts || [];
+                    globalSettings = data.settings || {};
+
+                    approvedPosts = globalPosts.filter(p => p.status === 'approved' || !p.status);
+
+                    applySiteSettings(globalSettings);
+                    renderHome();
+                    if (currentUser) renderUserDashboard();
+                }
+            });
+        }
+
+        function applySiteSettings(s) {
+            if (s.siteName) document.getElementById('site-name').innerText = s.siteName;
+            if (s.badgeText) document.getElementById('site-logo-badge').innerText = s.badgeText;
+            if (s.tagline) document.getElementById('site-tagline').innerText = s.tagline;
+
+            const tickerBox = document.getElementById('breaking-ticker-text');
+            if (s.breakingNews && s.breakingNews.trim() !== '') {
+                tickerBox.innerText = s.breakingNews + "   ---   " + s.breakingNews;
+            } else if (approvedPosts.length > 0) {
+                const combinedTitles = approvedPosts.slice(0, 5).map(p => p.title).join("   ||   ");
+                tickerBox.innerText = combinedTitles;
+            }
+
+            injectAdScript('ad-header-container', s.headerAd);
+            injectAdScript('ad-feed-container', s.feedAd);
+
+            const categories = s.categories || ["জাতীয়", "আন্তর্জাতিক", "খেলাধুলা", "প্রযুক্তি", "গেমিং", "বিনোদন"];
+            
+            const nav = document.getElementById('nav-categories');
+            nav.innerHTML = `<button onclick="renderGrid(approvedPosts, 'সকল সংবাদ')" class="btn-animate bg-blue-900 hover:bg-blue-950 px-3 py-1 rounded font-bold shadow-sm">হোম</button>` + 
+            categories.map(c => `<button onclick="filterCategory('${c}')" class="btn-animate hover:bg-blue-700 px-3 py-1 rounded transition">${c}</button>`).join('');
+
+            const catSelect = document.getElementById('post-category');
+            if(catSelect) {
+                catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+        }
+
+        function injectAdScript(containerId, htmlContent) {
+            const container = document.getElementById(containerId);
+            if (!container || !htmlContent || htmlContent.trim() === '') return;
+
+            container.innerHTML = '';
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+
+            Array.from(tempDiv.childNodes).forEach(node => {
+                if (node.tagName !== 'SCRIPT') container.appendChild(node.cloneNode(true));
+            });
+
+            const scripts = tempDiv.getElementsByTagName("script");
+            Array.from(scripts).forEach(oldScript => {
+                const newScript = document.createElement("script");
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                if (oldScript.src) newScript.src = oldScript.src;
+                else newScript.textContent = oldScript.textContent;
+                container.appendChild(newScript);
+            });
+
+            try {
+                if (htmlContent.includes('adsbygoogle')) (window.adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {}
+        }
+
+        async function saveDataToFirebase() {
+            await window.setDoc(window.doc(window.db, "news_portal", "data"), {
+                posts: globalPosts,
+                settings: globalSettings
+            });
+        }
+
+        // 👤 USER PROFILE DASHBOARD LOGIC
+        function toggleProfileModal(show) {
+            const modal = document.getElementById('profile-modal');
+            if (show) {
+                if (!currentUser) return;
+                document.getElementById('profile-display-name').value = currentUser.displayName || '';
+                document.getElementById('profile-email-readonly').value = currentUser.email || '';
+                document.getElementById('user-avatar-img').src = currentUser.photoURL || 'https://via.placeholder.com/150';
+                renderUserDashboard();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        async function updateProfileName() {
+            const newName = document.getElementById('profile-display-name').value;
+            if (!newName) return alert('অনুগ্রহ করে সঠিক নাম লিখুন');
+
+            try {
+                await window.updateProfile(currentUser, { displayName: newName });
+                alert('প্রোফাইল নাম সফলভাবে আপডেট হয়েছে!');
+                location.reload();
+            } catch (err) {
+                alert('নাম আপডেট করতে সমস্যা হয়েছে: ' + err.message);
+            }
+        }
+
+        async function uploadProfilePhoto(e) {
+            const file = e.target.files[0];
+            const status = document.getElementById('profile-upload-status');
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            status.className = 'text-blue-600 text-[10px] font-bold mt-1';
+            status.innerText = '⏳ ফটো আপলোড হচ্ছে...';
+
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    await window.updateProfile(currentUser, { photoURL: imageUrl });
+                    document.getElementById('user-avatar-img').src = imageUrl;
+                    status.className = 'text-green-600 text-[10px] font-bold mt-1';
+                    status.innerText = '✅ প্রোফাইল ছবি আপডেট হয়েছে!';
+                } else {
+                    throw new Error('Upload Failed');
+                }
+            } catch (err) {
+                status.className = 'text-red-600 text-[10px] font-bold mt-1';
+                status.innerText = '❌ আপলোড ব্যর্থ হয়েছে!';
+            }
+        }
+
+        function renderUserDashboard() {
+            if (!currentUser) return;
+
+            const myPosts = globalPosts.filter(p => p.authorEmail === currentUser.email || (p.authorName === currentUser.displayName && p.authorName));
+            const approved = myPosts.filter(p => p.status === 'approved' || !p.status);
+            const pending = myPosts.filter(p => p.status === 'pending');
+
+            document.getElementById('user-stat-total').innerText = myPosts.length;
+            document.getElementById('user-stat-approved').innerText = approved.length;
+            document.getElementById('user-stat-pending').innerText = pending.length;
+
+            const tbody = document.getElementById('user-posts-table-body');
+            if (myPosts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-400">আপনি কোনো পোস্ট সাবমিট করেননি।</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = myPosts.map(p => `
+                <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
+                    <td class="p-2"><img src="${p.images[0]}" class="w-10 h-8 object-cover rounded"></td>
+                    <td class="p-2 font-bold line-clamp-1">${p.title}</td>
+                    <td class="p-2">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${p.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}">
+                            ${p.status === 'pending' ? 'Pending' : 'Approved'}
+                        </span>
+                    </td>
+                    <td class="p-2 text-right">
+                        <button onclick="editUserPost('${p.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold me-1">এডিট</button>
+                        <button onclick="deleteUserPost('${p.id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px] font-bold">ডিলিট</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 📤 MULTI-PHOTO UPLOAD FOR USER POST FORM
+        async function uploadUserPostImage() {
+            const fileInput = document.getElementById('user-post-file-input');
+            const statusDiv = document.getElementById('user-upload-status');
+            const btnUpload = document.getElementById('btn-upload-user-img');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('একটি ছবি সিলেক্ট করুন!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            statusDiv.className = "text-blue-600 font-bold text-[11px] mt-1";
+            statusDiv.innerText = "⏳ ফটো আপলোড হচ্ছে...";
+            btnUpload.disabled = true;
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    userUploadedImages.push(result.data.url);
+                    renderUserImagePreviews();
+                    statusDiv.className = "text-green-600 font-bold text-[11px] mt-1";
+                    statusDiv.innerText = "✅ ফটো আপলোড হয়েছে!";
+                    fileInput.value = '';
+                } else {
+                    throw new Error('Upload Failed');
+                }
+            } catch (err) {
+                statusDiv.className = "text-red-600 font-bold text-[11px] mt-1";
+                statusDiv.innerText = "❌ আপলোড সমস্যা: " + err.message;
+            } finally {
+                btnUpload.disabled = false;
+            }
+        }
+
+        function renderUserImagePreviews() {
+            const container = document.getElementById('user-image-preview-box');
+            if (userUploadedImages.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = userUploadedImages.map((url, i) => `
+                <div class="relative border rounded overflow-hidden bg-gray-200 w-16 h-16 shadow-sm">
+                    <img src="${url}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeUserImage(${i})" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeUserImage(i) {
+            userUploadedImages.splice(i, 1);
+            renderUserImagePreviews();
+        }
+
+        function addUserLinkInput(title = '', url = '') {
+            const wrapper = document.getElementById('user-links-wrapper');
+            const div = document.createElement('div');
+            div.className = "flex gap-2";
+            div.innerHTML = `
+                <input type="text" value="${title}" placeholder="লিংকের নাম" class="user-link-title w-1/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+                <input type="url" value="${url}" placeholder="URL (https://...)" class="user-link-url w-2/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+            `;
+            wrapper.appendChild(div);
+        }
+
+        // CREATE & EDIT USER POST
+        function toggleCreatePostModal(show) {
+            const modal = document.getElementById('create-post-modal');
+            if (show) {
+                if (!currentUser) {
+                    alert("পোস্ট করার জন্য প্রথমে লগইন করুন!");
+                    toggleAuthModal(true);
+                    return;
+                }
+                resetUserPostForm();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function resetUserPostForm() {
+            document.getElementById('user-edit-post-id').value = '';
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-tags').value = '';
+            document.getElementById('post-short-desc').value = '';
+            document.getElementById('post-full-details').value = '';
+            userUploadedImages = [];
+            renderUserImagePreviews();
+            document.getElementById('user-links-wrapper').innerHTML = `
+                <div class="flex gap-2">
+                    <input type="text" placeholder="লিংকের নাম" class="user-link-title w-1/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+                    <input type="url" placeholder="URL (https://...)" class="user-link-url w-2/3 p-1.5 border rounded text-xs dark:bg-gray-700">
+                </div>
+            `;
+            document.getElementById('user-post-modal-title').innerHTML = `<i class="fas fa-pen-nib"></i> নতুন পোস্ট সাবমিট করুন`;
+            document.getElementById('btn-submit-user-post').innerText = '🚀 পোস্ট সাবমিট করুন (Pending)';
+            document.getElementById('user-upload-status').innerText = '';
+        }
+
+        function editUserPost(id) {
+            const post = globalPosts.find(p => p.id === id);
+            if (!post) return;
+
+            toggleProfileModal(false);
+
+            document.getElementById('user-edit-post-id').value = post.id;
+            document.getElementById('post-title').value = post.title;
+            document.getElementById('post-category').value = post.category;
+            document.getElementById('post-tags').value = (post.tags || []).join(', ');
+            document.getElementById('post-short-desc').value = post.shortDesc;
+            document.getElementById('post-full-details').value = post.fullDetails;
+
+            userUploadedImages = [...(post.images || [])];
+            renderUserImagePreviews();
+
+            const wrapper = document.getElementById('user-links-wrapper');
+            wrapper.innerHTML = '';
+            if (post.links && post.links.length > 0) {
+                post.links.forEach(l => addUserLinkInput(l.title, l.url));
+            } else {
+                addUserLinkInput();
+            }
+
+            document.getElementById('user-post-modal-title').innerHTML = `<i class="fas fa-edit"></i> পোস্ট এডিট করুন`;
+            document.getElementById('btn-submit-user-post').innerText = '🔄 আপডেট সেভ করুন';
+
+            document.getElementById('create-post-modal').classList.remove('hidden');
+        }
+
+        async function handleUserPostSubmit(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            if (userUploadedImages.length === 0) {
+                alert('অনুগ্রহ করে অন্তত ১টি ফটো আপলোড করুন!');
+                return;
+            }
+
+            const editId = document.getElementById('user-edit-post-id').value;
+            const btn = document.getElementById('btn-submit-user-post');
+            btn.disabled = true;
+
+            const linkTitles = document.querySelectorAll('.user-link-title');
+            const linkUrls = document.querySelectorAll('.user-link-url');
+            const links = [];
+            linkTitles.forEach((el, index) => {
+                if (el.value && linkUrls[index].value) {
+                    links.push({ title: el.value, url: linkUrls[index].value });
+                }
+            });
+
+            const tags = document.getElementById('post-tags').value.split(',').map(t => t.trim());
+
+            if (editId) {
+                const index = globalPosts.findIndex(p => p.id === editId);
+                if (index !== -1) {
+                    globalPosts[index] = {
+                        ...globalPosts[index],
+                        title: document.getElementById('post-title').value,
+                        category: document.getElementById('post-category').value,
+                        tags,
+                        images: userUploadedImages,
+                        shortDesc: document.getElementById('post-short-desc').value,
+                        fullDetails: document.getElementById('post-full-details').value,
+                        links,
+                        status: "pending"
+                    };
+                    alert("পোস্টটি আপডেট করা হয়েছে এবং পেন্ডিং লিস্টে রাখা হয়েছে!");
+                }
+            } else {
+                const newPost = {
+                    id: "post_" + Date.now(),
+                    title: document.getElementById('post-title').value,
+                    category: document.getElementById('post-category').value,
+                    tags,
+                    authorName: currentUser.displayName || currentUser.email.split('@')[0],
+                    authorEmail: currentUser.email,
+                    images: userUploadedImages,
+                    shortDesc: document.getElementById('post-short-desc').value,
+                    fullDetails: document.getElementById('post-full-details').value,
+                    links,
+                    date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+                    views: 0,
+                    isFeatured: false,
+                    status: "pending",
+                    createdAt: Date.now()
+                };
+                globalPosts.unshift(newPost);
+                alert("আপনার পোস্টটি সফলভাবে জমা দেওয়া হয়েছে! এডমিন এপ্রুভ করলে এটি প্রকাশ করা হবে।");
+            }
+
+            try {
+                await saveDataToFirebase();
+                toggleCreatePostModal(false);
+            } catch (err) {
+                alert("ত্রুটি: " + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteUserPost(id) {
+            if (confirm('আপনি কি নিশ্চিত পোস্টটি ডিলিট করতে চান?')) {
+                globalPosts = globalPosts.filter(p => p.id !== id);
+                await saveDataToFirebase();
+                alert('পোস্ট মুছে ফেলা হয়েছে!');
+            }
+        }
+
+        // HOMEPAGE & DETAILS RENDERERS
+        function renderHome() {
+            const featuredContainer = document.getElementById('featured-post-box');
+            if (approvedPosts.length === 0) {
+                featuredContainer.innerHTML = `<p class="p-4 text-xs text-center text-gray-500">কোনো পোস্ট পাওয়া যায়নি।</p>`;
+                document.getElementById('posts-grid').innerHTML = '';
+                return;
+            }
+
+            featuredPostsList = approvedPosts.filter(p => p.isFeatured === true);
+
+            if (featuredPostsList.length > 0) {
+                currentFeaturedIndex = 0;
+                renderFeaturedCard();
+                startFeaturedAutoSlide();
+            } else {
+                if (featuredSliderInterval) clearInterval(featuredSliderInterval);
+                featuredContainer.innerHTML = '';
+            }
+
+            renderGrid(approvedPosts, "সকল সংবাদ");
+        }
+
+        function renderFeaturedCard() {
+            const featuredContainer = document.getElementById('featured-post-box');
+            const post = featuredPostsList[currentFeaturedIndex];
+            if (!post) return;
+
+            const dotsHtml = featuredPostsList.length > 1 ? `
+                <div class="absolute top-3 right-3 z-20 flex gap-1.5 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                    ${featuredPostsList.map((_, idx) => `
+                        <span class="w-2 h-2 rounded-full transition-all duration-300 ${idx === currentFeaturedIndex ? 'bg-red-500 w-4' : 'bg-white/60'}"></span>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            featuredContainer.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 mb-6 featured-slide">
+                    <div class="relative cursor-pointer group overflow-hidden" onclick="openDetail('${post.id}')">
+                        <div class="img-container h-56 sm:h-72">
+                            <img src="${post.images[0]}" class="img-responsive" alt="Featured">
+                        </div>
+                        <span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase shadow-lg z-10">${post.category}</span>
+                        ${dotsHtml}
+                        <div class="p-4 bg-gradient-to-t from-black/90 via-black/70 to-transparent absolute bottom-0 inset-x-0 text-white">
+                            <h2 class="text-base sm:text-lg font-bold line-clamp-2 leading-snug group-hover:text-blue-300 transition">${post.title}</h2>
+                            <span class="text-[10px] text-gray-300 mt-1 block">📅 ${post.date} | ✍️ ${post.authorName || 'এডমিন'} | 👁️ ${post.views || 0} Views</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startFeaturedAutoSlide() {
+            if (featuredSliderInterval) clearInterval(featuredSliderInterval);
+            if (featuredPostsList.length > 1) {
+                featuredSliderInterval = setInterval(() => {
+                    currentFeaturedIndex = (currentFeaturedIndex + 1) % featuredPostsList.length;
+                    renderFeaturedCard();
+                }, 3000);
+            }
+        }
+
+        function renderGrid(postsToRender, title) {
+            document.getElementById('grid-title').innerText = title;
+            const grid = document.getElementById('posts-grid');
+            grid.innerHTML = postsToRender.map(p => `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col justify-between group">
+                    <div>
+                        <div class="relative cursor-pointer overflow-hidden" onclick="openDetail('${p.id}')">
+                            <div class="img-container h-44">
+                                <img src="${p.images[0]}" class="img-responsive" alt="${p.title}">
+                            </div>
+                            <span class="absolute top-2 left-2 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded font-bold uppercase shadow z-10">${p.category}</span>
+                        </div>
+                        <div class="p-3">
+                            <h3 onclick="openDetail('${p.id}')" class="font-bold text-xs hover:text-blue-600 line-clamp-2 cursor-pointer transition leading-snug">${p.title}</h3>
+                            <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 line-clamp-2">${p.shortDesc}</p>
+                        </div>
+                    </div>
+                    <div class="px-3 py-2 bg-gray-50 dark:bg-gray-750 border-t border-gray-100 dark:border-gray-700 text-[10px] text-gray-400 flex justify-between items-center">
+                        <span>📅 ${p.date} | ✍️ ${p.authorName || 'এডমিন'}</span>
+                        <span>👁️ ${p.views || 0} Views</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat) {
+            const filtered = approvedPosts.filter(p => p.category === cat);
+            renderGrid(filtered, `ক্যাটাগরি: ${cat}`);
+            showHome();
+        }
+
+        function openDetail(id) {
+            const post = approvedPosts.find(p => p.id === id);
+            if (!post) return;
+
+            const postIndex = globalPosts.findIndex(p => p.id === id);
+            if (postIndex !== -1) {
+                globalPosts[postIndex].views = (globalPosts[postIndex].views || 0) + 1;
+                saveDataToFirebase();
+            }
+
+            const gallery = (post.images || []).map((img, i) => `
+                <div class="img-container rounded-lg shadow-md max-h-96 my-3 bg-gray-900 group">
+                    <img src="${img}" alt="Photo ${i+1}" class="img-responsive">
+                </div>
+            `).join('');
+
+            const links = post.links && post.links.length > 0 ? `
+                <div class="mt-4 p-3.5 bg-blue-50/50 dark:bg-gray-700/40 rounded-lg border border-blue-100 dark:border-gray-600">
+                    <h4 class="font-bold text-xs mb-2 text-blue-600 dark:text-blue-400">🔗 গুরুত্বপূর্ণ লিংকসমূহ:</h4>
+                    <div class="flex flex-wrap gap-2">
+                        ${post.links.map(l => `<a href="${l.url}" target="_blank" class="btn-animate bg-blue-600 hover:bg-blue-700 text-white text-[11px] px-3 py-1.5 rounded-md font-bold transition flex items-center gap-1">${l.title} <i class="fas fa-external-link-alt text-[9px]"></i></a>`).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            const tagsHtml = post.tags && post.tags.length > 0 ? `
+                <div class="flex flex-wrap gap-1 mt-3">
+                    ${post.tags.map(t => `<span class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-[10px] px-2 py-0.5 rounded">#${t}</span>`).join('')}
+                </div>
+            ` : '';
+
+            document.getElementById('detail-content').innerHTML = `
+                <span class="bg-blue-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase shadow">${post.category}</span>
+                <h1 class="text-lg font-bold mt-2.5 leading-snug">${post.title}</h1>
+                <div class="text-[10px] text-gray-400 mt-1 border-b dark:border-gray-700 pb-2 mb-3">📅 ${post.date} | ✍️ লেখক: <span class="text-blue-600 dark:text-blue-400 font-bold">${post.authorName || 'এডমিন'}</span> | 👁️ ${post.views || 0} Views</div>
+                
+                <div class="space-y-3 mb-4">${gallery}</div>
+                
+                <p class="text-xs italic bg-blue-50 dark:bg-gray-700/50 p-3 rounded-lg border-l-4 border-blue-600 mb-3">${post.shortDesc}</p>
+                <div class="text-xs leading-relaxed space-y-2 whitespace-pre-line text-gray-700 dark:text-gray-200">${post.fullDetails}</div>
+                ${links}
+                ${tagsHtml}
+            `;
+
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-detail').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (location.hash !== '#detail') history.pushState({ page: 'detail' }, '', '#detail');
+        }
+
+        function showHome() {
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+            if (location.hash === '#detail') history.replaceState(null, '', location.pathname);
+        }
+
+        window.addEventListener('popstate', () => {
+            const searchModal = document.getElementById('search-modal');
+            const authModal = document.getElementById('auth-modal');
+            const createModal = document.getElementById('create-post-modal');
+            const profileModal = document.getElementById('profile-modal');
+
+            if (!searchModal.classList.contains('hidden')) { searchModal.classList.add('hidden'); return; }
+            if (!authModal.classList.contains('hidden')) { authModal.classList.add('hidden'); return; }
+            if (!createModal.classList.contains('hidden')) { createModal.classList.add('hidden'); return; }
+            if (!profileModal.classList.contains('hidden')) { profileModal.classList.add('hidden'); return; }
+
+            if (!document.getElementById('view-detail').classList.contains('hidden')) showHome();
+        });
+
+        // SEARCH
+        function toggleSearchModal(forceState) {
+            const modal = document.getElementById('search-modal');
+            const isHidden = modal.classList.contains('hidden');
+            if (forceState === false || !isHidden) {
+                modal.classList.add('hidden');
+                if (location.hash === '#search') history.replaceState(null, '', location.pathname);
+            } else {
+                modal.classList.remove('hidden');
+                history.pushState({ page: 'search' }, '', '#search');
+                document.getElementById('search-input').focus();
+            }
+        }
+
+        function smartSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const resultsBox = document.getElementById('search-results');
+
+            if (!query) { resultsBox.innerHTML = ''; return; }
+            const words = query.split(' ');
+
+            const scoredPosts = approvedPosts.map(post => {
+                let score = 0;
+                const title = post.title.toLowerCase();
+                const cat = post.category.toLowerCase();
+                const desc = post.shortDesc.toLowerCase();
+
+                words.forEach(word => {
+                    if (title.includes(word)) score += 5;
+                    if (cat.includes(word)) score += 4;
+                    if (desc.includes(word)) score += 2;
+                });
+                return { post, score };
+            });
+
+            const matched = scoredPosts.filter(item => item.score > 0).sort((a, b) => b.score - a.score);
+            if (matched.length === 0) {
+                resultsBox.innerHTML = `<div class="p-3 text-xs text-gray-500 text-center">কোনো ফলাফল পাওয়া যায়নি।</div>`;
+                return;
+            }
+
+            resultsBox.innerHTML = matched.map(item => `
+                <div onclick="toggleSearchModal(false); openDetail('${item.post.id}')" class="p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-blue-600 hover:text-white transition flex justify-between items-center text-xs btn-animate">
+                    <span class="font-bold line-clamp-1">${item.post.title}</span>
+                    <span class="text-[10px] opacity-75 shrink-0 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded ms-2">${item.post.category}</span>
+                </div>
+            `).join('');
+        }
+
+        // AUTH MODAL LOGIC
+        function toggleAuthModal(show) {
+            const modal = document.getElementById('auth-modal');
+            if (show) {
+                switchAuthTab('login');
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function switchAuthTab(tab) {
+            document.getElementById('auth-login-box').classList.add('hidden');
+            document.getElementById('auth-register-box').classList.add('hidden');
+            document.getElementById('auth-forgot-box').classList.add('hidden');
+
+            if (tab === 'login') document.getElementById('auth-login-box').classList.remove('hidden');
+            if (tab === 'register') document.getElementById('auth-register-box').classList.remove('hidden');
+            if (tab === 'forgot') document.getElementById('auth-forgot-box').classList.remove('hidden');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                await window.signInWithEmailAndPassword(window.auth, email, password);
+                alert("সফলভাবে লগইন হয়েছে!");
+                toggleAuthModal(false);
+            } catch (error) {
+                alert("লগইন ব্যর্থ হয়েছে: " + error.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const userCred = await window.createUserWithEmailAndPassword(window.auth, email, password);
+                await window.updateProfile(userCred.user, { displayName: name });
+                alert("একাউন্ট সফলভাবে তৈরি হয়েছে!");
+                toggleAuthModal(false);
+                location.reload();
+            } catch (error) {
+                alert("রেজিস্ট্রেশন ব্যর্থ হয়েছে: " + error.message);
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+
+            try {
+                await window.sendPasswordResetEmail(window.auth, email);
+                alert("পাসওয়ার্ড রিসেট করার লিংক আপনার ইমেইলে পাঠানো হয়েছে।");
+                toggleAuthModal(false);
+            } catch (error) {
+                alert("পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে: " + error.message);
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm("আপনি কি নিশ্চিত লগআউট করতে চান?")) {
+                await window.signOut(window.auth);
+                alert("লগআউট সফল হয়েছে!");
+            }
+        }
+    </script>
+</body>
+</html>
